@@ -1,0 +1,20 @@
+{
+  "anh": "data/synthetic/images/syn_06_mau_gan_nhau.png",
+  "mau_muc_tieu": "Cam",
+  "ghi_chu": "Cam đặt cạnh đỏ và vàng (Hue gần nhau)",
+  "nhom": "Ảnh tổng hợp",
+  "mask_chuan": "data/synthetic/masks/syn_06_mau_gan_nhau.png",
+  "config": {
+    "h_min": 10,
+    "h_max": 22,
+    "s_min": 80,
+    "v_min": 50,
+    "s_max": 255,
+    "v_max": 255,
+    "median_size": 5,
+    "kernel_size": 3,
+    "open_iterations": 1,
+    "close_iterations": 1,
+    "min_area": 150
+  }
+}

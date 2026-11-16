@@ -1,0 +1,20 @@
+{
+  "anh": "data/images/08_opencv_logo.png",
+  "mau_muc_tieu": "Đỏ",
+  "ghi_chu": "Logo màu thuần, có mask chuẩn để tính IoU",
+  "nhom": "Ảnh thật",
+  "mask_chuan": "data/masks/08_opencv_logo_do.png",
+  "config": {
+    "h_min": 170,
+    "h_max": 10,
+    "s_min": 100,
+    "v_min": 100,
+    "median_size": 1,
+    "kernel_size": 3,
+    "open_iterations": 1,
+    "close_iterations": 1,
+    "min_area": 100,
+    "s_max": 255,
+    "v_max": 255
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "anh": "data/synthetic/images/syn_02_xanh_nhat.png",
+  "mau_muc_tieu": "Xanh dương",
+  "ghi_chu": "Xanh dương nhạt, S chỉ 45–77",
+  "nhom": "Ảnh tổng hợp",
+  "mask_chuan": "data/synthetic/masks/syn_02_xanh_nhat.png",
+  "config": {
+    "h_min": 95,
+    "h_max": 130,
+    "s_min": 30,
+    "v_min": 50,
+    "s_max": 255,
+    "v_max": 255,
+    "median_size": 5,
+    "kernel_size": 3,
+    "open_iterations": 1,
+    "close_iterations": 1,
+    "min_area": 150
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "anh": "data/images/16_home.jpg",
+  "mau_muc_tieu": "Xanh dương",
+  "ghi_chu": "Bầu trời xanh",
+  "nhom": "Ảnh thật",
+  "mask_chuan": null,
+  "config": {
+    "h_min": 95,
+    "h_max": 125,
+    "s_min": 80,
+    "v_min": 80,
+    "median_size": 3,
+    "kernel_size": 5,
+    "open_iterations": 1,
+    "close_iterations": 1,
+    "min_area": 300,
+    "s_max": 255,
+    "v_max": 255
+  }
+}

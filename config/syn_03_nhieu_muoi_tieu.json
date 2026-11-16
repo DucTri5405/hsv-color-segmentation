@@ -1,0 +1,20 @@
+{
+  "anh": "data/synthetic/images/syn_03_nhieu_muoi_tieu.png",
+  "mau_muc_tieu": "Xanh lá",
+  "ghi_chu": "Xanh lá + 15% nhiễu xung màu",
+  "nhom": "Ảnh tổng hợp",
+  "mask_chuan": "data/synthetic/masks/syn_03_nhieu_muoi_tieu.png",
+  "config": {
+    "h_min": 35,
+    "h_max": 85,
+    "s_min": 80,
+    "v_min": 50,
+    "s_max": 255,
+    "v_max": 255,
+    "median_size": 5,
+    "kernel_size": 3,
+    "open_iterations": 1,
+    "close_iterations": 1,
+    "min_area": 150
+  }
+}

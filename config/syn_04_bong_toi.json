@@ -1,0 +1,20 @@
+{
+  "anh": "data/synthetic/images/syn_04_bong_toi.png",
+  "mau_muc_tieu": "Vàng",
+  "ghi_chu": "Vàng dưới ánh sáng giảm dần + vùng bóng",
+  "nhom": "Ảnh tổng hợp",
+  "mask_chuan": "data/synthetic/masks/syn_04_bong_toi.png",
+  "config": {
+    "h_min": 20,
+    "h_max": 35,
+    "s_min": 80,
+    "v_min": 40,
+    "s_max": 255,
+    "v_max": 255,
+    "median_size": 5,
+    "kernel_size": 3,
+    "open_iterations": 1,
+    "close_iterations": 1,
+    "min_area": 150
+  }
+}

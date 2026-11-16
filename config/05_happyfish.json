@@ -1,0 +1,20 @@
+{
+  "anh": "data/images/05_happyfish.jpg",
+  "mau_muc_tieu": "Vàng",
+  "ghi_chu": "Vùng vàng trên thân cá (ảnh hoạt hình)",
+  "nhom": "Ảnh thật",
+  "mask_chuan": null,
+  "config": {
+    "h_min": 20,
+    "h_max": 35,
+    "s_min": 100,
+    "v_min": 100,
+    "median_size": 1,
+    "kernel_size": 3,
+    "open_iterations": 1,
+    "close_iterations": 1,
+    "min_area": 50,
+    "s_max": 255,
+    "v_max": 255
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "anh": "data/images/12_coffee.png",
+  "mau_muc_tieu": "Đỏ",
+  "ghi_chu": "Đĩa và tách đỏ, tránh mặt bàn gỗ (S cao)",
+  "nhom": "Ảnh thật",
+  "mask_chuan": null,
+  "config": {
+    "h_min": 170,
+    "h_max": 6,
+    "s_min": 170,
+    "v_min": 60,
+    "median_size": 3,
+    "kernel_size": 5,
+    "open_iterations": 1,
+    "close_iterations": 2,
+    "min_area": 500,
+    "s_max": 255,
+    "v_max": 255
+  }
+}

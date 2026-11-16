@@ -1,0 +1,20 @@
+{
+  "anh": "data/images/04_baboon.jpg",
+  "mau_muc_tieu": "Xanh dương",
+  "ghi_chu": "Hai má xanh dương của khỉ mandrill",
+  "nhom": "Ảnh thật",
+  "mask_chuan": null,
+  "config": {
+    "h_min": 95,
+    "h_max": 125,
+    "s_min": 60,
+    "v_min": 60,
+    "median_size": 3,
+    "kernel_size": 5,
+    "open_iterations": 1,
+    "close_iterations": 1,
+    "min_area": 300,
+    "s_max": 255,
+    "v_max": 255
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "anh": "data/images/09_board.jpg",
+  "mau_muc_tieu": "Xanh lá",
+  "ghi_chu": "Bo mạch: nền trùng màu (ví dụ hạn chế)",
+  "nhom": "Ảnh thật",
+  "mask_chuan": null,
+  "config": {
+    "h_min": 40,
+    "h_max": 85,
+    "s_min": 100,
+    "v_min": 60,
+    "median_size": 5,
+    "kernel_size": 5,
+    "open_iterations": 1,
+    "close_iterations": 2,
+    "min_area": 500,
+    "s_max": 255,
+    "v_max": 255
+  }
+}

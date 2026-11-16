@@ -1,0 +1,20 @@
+{
+  "anh": "data/images/07_orange.jpg",
+  "mau_muc_tieu": "Cam",
+  "ghi_chu": "Quả cam, phần tối bị bóng",
+  "nhom": "Ảnh thật",
+  "mask_chuan": null,
+  "config": {
+    "h_min": 10,
+    "h_max": 22,
+    "s_min": 120,
+    "v_min": 80,
+    "median_size": 3,
+    "kernel_size": 5,
+    "open_iterations": 1,
+    "close_iterations": 2,
+    "min_area": 500,
+    "s_max": 255,
+    "v_max": 255
+  }
+}

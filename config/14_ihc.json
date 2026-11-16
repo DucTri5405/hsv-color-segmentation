@@ -1,0 +1,20 @@
+{
+  "anh": "data/images/14_ihc.png",
+  "mau_muc_tieu": "Cam",
+  "ghi_chu": "Ảnh y sinh: vùng nhuộm nâu (DAB)",
+  "nhom": "Ảnh thật",
+  "mask_chuan": null,
+  "config": {
+    "h_min": 0,
+    "h_max": 25,
+    "s_min": 60,
+    "v_min": 40,
+    "median_size": 3,
+    "kernel_size": 3,
+    "open_iterations": 1,
+    "close_iterations": 1,
+    "min_area": 50,
+    "s_max": 255,
+    "v_max": 255
+  }
+}

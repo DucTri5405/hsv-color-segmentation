@@ -1,0 +1,20 @@
+{
+  "anh": "data/synthetic/images/syn_01_do_hue_vong.png",
+  "mau_muc_tieu": "Đỏ",
+  "ghi_chu": "Đỏ nằm ở hai đầu vòng Hue (H≈1–5 và 173–178)",
+  "nhom": "Ảnh tổng hợp",
+  "mask_chuan": "data/synthetic/masks/syn_01_do_hue_vong.png",
+  "config": {
+    "h_min": 170,
+    "h_max": 10,
+    "s_min": 80,
+    "v_min": 50,
+    "s_max": 255,
+    "v_max": 255,
+    "median_size": 5,
+    "kernel_size": 3,
+    "open_iterations": 1,
+    "close_iterations": 1,
+    "min_area": 150
+  }
+}
