@@ -428,7 +428,7 @@ class HSVApplication:
                 p.show(img, t)
             last = self.pipe_panels[11]
             if self.gt is not None and self.gt.shape == r['mask'].shape:
-                last.show(compare_image(r['mask'], self.gt), 'So với mask chuẩn (xanh=đúng, đỏ=thừa, lam=sót)')
+                last.show(compare_image(r['mask'], self.gt), 'So sánh: xanh lá=đúng, đỏ=thừa, xanh dương=sót')
             else:
                 last.title.configure(text='So với mask chuẩn')
                 last.clear('Chưa có mask chuẩn')
