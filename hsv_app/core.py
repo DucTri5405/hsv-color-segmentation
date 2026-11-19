@@ -8,6 +8,7 @@ Pipeline (mỗi bước trả về ảnh trung gian để GUI hiển thị):
   B4  Opening  (co rồi giãn)  -> bỏ đốm nhiễu trắng
   B5  Closing  (giãn rồi co)  -> lấp lỗ đen nhỏ
   B6  Lọc vùng nhỏ bằng connectedComponentsWithStats, đếm số vùng
+      (tùy chọn) lấp khuyết viền: thay mỗi vùng bằng bao lồi của nó (vật tròn bị vệt phản sáng ở mép)
   B7  Áp mask lên ảnh gốc (bitwise_and) + overlay, đường bao, khung, số thứ tự
   B8  Đánh giá: % pixel, số vùng, thời gian; IoU/Precision/Recall/F1 nếu có mask chuẩn
 """
@@ -31,6 +32,7 @@ class HSVConfig:
     open_iterations: int = 1
     close_iterations: int = 1
     min_area: int = 100
+    fill_convex: int = 0
 
     def validate(self):
         limits = {'h_min': 179, 'h_max': 179, 's_min': 255, 's_max': 255,
@@ -44,6 +46,8 @@ class HSVConfig:
             raise ValueError('S min phải nhỏ hơn hoặc bằng S max')
         if self.v_min > self.v_max:
             raise ValueError('V min phải nhỏ hơn hoặc bằng V max')
+        if self.fill_convex not in (0, 1) or type(self.fill_convex) is not int:
+            raise ValueError('fill_convex phải là 0 hoặc 1')
         for key in ('median_size', 'kernel_size'):
             value = getattr(self, key)
             if type(value) is not int or not 1 <= value <= 31 or value % 2 == 0:
@@ -68,9 +72,11 @@ class HSVConfig:
 
 
 # Dải Hue theo thang OpenCV (H = góc độ / 2). Đỏ nằm ở hai đầu vòng màu.
+# Đỏ và Cam không chồng nhau: kẹo cam đo được H 0..17 (trung vị 6..9), kẹo đỏ H 171..179 và 0.
+# Đây chỉ là điểm xuất phát; mỗi ảnh mẫu có ngưỡng riêng trong config/.
 HUE_RANGES = {
-    'Đỏ': (170, 10),
-    'Cam': (10, 22),
+    'Đỏ': (170, 5),
+    'Cam': (6, 22),
     'Vàng': (22, 35),
     'Xanh lá': (35, 85),
     'Xanh dương': (90, 130),
@@ -230,10 +236,17 @@ def run_pipeline(image, config, display_color=None, with_steps=True, text_scale=
     keep = [i for i in range(1, n) if stats[i, cv2.CC_STAT_AREA] >= c.min_area]
     lookup = np.zeros(n, np.uint8); lookup[keep] = 255
     mask = lookup[labels]
+    if c.fill_convex and keep:
+        mask = np.zeros_like(mask)
+        for i in keep:
+            pts = cv2.findNonZero((labels == i).astype(np.uint8))
+            cv2.fillPoly(mask, [cv2.convexHull(pts)], 255)
     components = []
     order = sorted(keep, key=lambda i: (int(stats[i, 1]) // 40, int(stats[i, 0])))
     for number, i in enumerate(order, 1):
         x, y, w, h, area = map(int, stats[i])
+        if c.fill_convex:
+            area = int(np.count_nonzero(mask[y:y + h, x:x + w]))
         components.append(dict(id=number, x=x, y=y, width=w, height=h, area=area,
                                center_x=round(float(centers[i][0]), 1),
                                center_y=round(float(centers[i][1]), 1)))

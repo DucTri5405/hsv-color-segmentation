@@ -10,7 +10,8 @@ số vùng và các chỉ số đánh giá.
 
 - Mở ảnh, ảnh mẫu có sẵn hoặc video (phát và xuất video AVI đã phân đoạn).
 - Preset màu (Đỏ, Cam, Vàng, Xanh lá, Xanh dương, Tím...) và 6 thanh trượt H, S, V; tự xử lý màu đỏ nằm ở hai đầu vòng Hue.
-- Hậu xử lý: lọc Median, Opening, Closing, lọc vùng nhỏ, đếm và đánh số vùng.
+- Hậu xử lý: lọc Median, Opening, Closing, lọc vùng nhỏ, đếm và đánh số vùng; tùy chọn lấp khuyết viền
+  (bao lồi từng vùng) cho vật tròn bị vệt phản sáng ở mép.
 - Tab *Trước / Sau* và tab *Pipeline từng bước*.
 - Nhấp vào ảnh để xem giá trị HSV và gợi ý ngưỡng; tách nhiều màu cùng lúc.
 - Nạp mask chuẩn để tính IoU, Precision, Recall, F1.
@@ -51,6 +52,8 @@ BGR → Median → BGR→HSV → inRange (H, S, V) → Opening → Closing → l
 - Màu đỏ có Hue nằm ở hai đầu thang 0–179, nên khi `H_min > H_max` chương trình lấy hai dải
   `[H_min, 179]` và `[0, H_max]` rồi ghép bằng `bitwise_or`.
 - S loại nền trắng/xám (độ bão hòa thấp), V loại vùng quá tối.
+- Đỏ và cam nằm sát nhau trên thang Hue (kẹo cam đo được H 0–17, kẹo đỏ H 171–179 và 0), nên preset Đỏ (170–5)
+  và Cam (6–22) không chồng nhau, và mỗi ảnh mẫu có ngưỡng chỉnh riêng trong `config/`.
 - `bgr_to_hsv_manual` cài lại công thức chuyển HSV bằng NumPy để đối chiếu với OpenCV (sai khác ≤ 1).
 
 Mã nguồn chính nằm trong `hsv_app/core.py`.

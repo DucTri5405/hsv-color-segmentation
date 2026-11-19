@@ -140,12 +140,12 @@ class HSVApplication:
             root.state('zoomed')
         except tk.TclError:
             root.geometry('1366x768')
-        root.minsize(1100, 680)
+        root.minsize(960, 600)
         self.image = None; self.result = None; self.result_config = None; self.gt = None
         self.multi = None; self.source = ''; self.cap = None; self.playing = False
         self.frame_index = None; self.pending = None; self.video_pending = None; self.changing = False
         self.export_thread = None; self.events = queue.Queue(); self.cancel_export = threading.Event()
-        self.closing = False; self.delay = 40; self.suggestion = None
+        self.closing = False; self.delay = 40; self.suggestion = None; self.gt_target = None
         self.samples = load_samples()
         self.sample_map = {f"{s['id']} • {s['target']}": s for s in self.samples}
         self._style()
@@ -163,7 +163,7 @@ class HSVApplication:
         st.configure('.', font=FONT, background=BG)
         st.configure('TFrame', background=BG)
         st.configure('TLabel', background=BG, foreground=DARK)
-        st.configure('TButton', padding=(10, 6), font=FONT)
+        st.configure('TButton', padding=(7, 5), font=FONT)
         st.configure('Accent.TButton', font=FONT_B, foreground='white', background=ACCENT)
         st.map('Accent.TButton', background=[('active', '#1565c0')])
         st.configure('TNotebook.Tab', font=FONT_H, padding=(18, 6), background='#c9d4e4', foreground=DARK)
@@ -178,15 +178,27 @@ class HSVApplication:
                  bg=ACCENT, fg='white').pack(side='left', padx=14, pady=6)
         tk.Label(bar, text='HSV Color Segmentation', font=FONT, bg=ACCENT, fg='#dce8f8').pack(side='right', padx=14)
         tools = ttk.Frame(self.root, padding=(8, 6)); tools.pack(fill='x')
+        ttk.Button(tools, text='❓ Hướng dẫn', command=self.help).pack(side='right', padx=2)
         self.play_text = tk.StringVar(value='▶ Phát')
+        flow = ttk.Frame(tools); flow.pack(side='left', fill='x', expand=True)
+        self.tool_buttons = []; self._flow_width = None
         for text, cmd in [('📂 Mở ảnh', self.open_image), ('🎬 Mở video', self.open_video),
                           (None, self.toggle_play), ('🎯 Nạp mask chuẩn', self.load_gt),
                           ('💾 Lưu kết quả', self.save), ('Lưu cấu hình', self.save_settings),
                           ('Nạp cấu hình', self.load_settings), ('Xuất video', self.export)]:
-            b = ttk.Button(tools, text=text, command=cmd) if text else ttk.Button(tools, textvariable=self.play_text, command=cmd)
-            b.pack(side='left', padx=2)
-        ttk.Button(tools, text='❓ Hướng dẫn', command=self.help).pack(side='right', padx=2)
+            b = ttk.Button(flow, text=text, command=cmd) if text else ttk.Button(flow, textvariable=self.play_text, command=cmd)
+            self.tool_buttons.append(b)
+        flow.bind('<Configure>', self._flow_tools)
 
+        # thanh thông tin pack trước phần thân để luôn hiện khi màn hình thấp / chữ phóng to
+        info = tk.Frame(self.root, bg='#dfe7f2'); info.pack(fill='x', side='bottom')
+        self.stats_text = tk.StringVar(value='Chưa có ảnh. Chọn ảnh mẫu hoặc bấm Mở ảnh.')
+        self.metric_text = tk.StringVar(value='')
+        self.status = tk.StringVar(value='Sẵn sàng.')
+        tk.Label(info, textvariable=self.stats_text, font=('Segoe UI', 13, 'bold'), bg='#dfe7f2', fg=DARK, anchor='w').pack(fill='x', padx=12, pady=(5, 0))
+        tk.Label(info, textvariable=self.metric_text, font=('Segoe UI', 13, 'bold'), bg='#dfe7f2', fg='#0a6b2f', anchor='w').pack(fill='x', padx=12)
+        tk.Label(info, textvariable=self.status, font=FONT, bg='#dfe7f2', fg='#44546e', anchor='w').pack(fill='x', padx=12, pady=(0, 2))
+        self.progress = ttk.Progressbar(info, mode='determinate'); self.progress.pack(fill='x', padx=12, pady=(0, 5))
         body = ttk.Frame(self.root, padding=(8, 0)); body.pack(fill='both', expand=True)
         left = ttk.Frame(body, width=372); left.pack(side='left', fill='y'); left.pack_propagate(False)
         sc = tk.Canvas(left, bg=BG, highlightthickness=0)
@@ -197,6 +209,8 @@ class HSVApplication:
         sc.bind('<Configure>', lambda e: sc.itemconfigure(win, width=e.width))
         self._scroll_canvas, self._left = sc, left
         self.root.bind_all('<MouseWheel>', self._wheel, add='+')
+        for cls in ('TCombobox', 'TSpinbox'):  # lăn chuột không được tự đổi ảnh mẫu / màu / số
+            self.root.bind_class(cls, '<MouseWheel>', lambda e: (self._wheel(e), 'break')[1])
 
         def head(text):
             tk.Label(ctl, text=text, font=FONT_H, bg=BG, fg=ACCENT, anchor='w').pack(fill='x', pady=(8, 2))
@@ -239,6 +253,9 @@ class HSVApplication:
             var = tk.IntVar(); self.vars[key] = var
             box = ttk.Combobox(line, values=values, textvariable=var, width=5, state='readonly', font=FONT)
             box.pack(side='right'); box.bind('<<ComboboxSelected>>', lambda e: self.schedule())
+        self.vars['fill_convex'] = tk.IntVar(value=0)
+        ttk.Checkbutton(ctl, text='Lấp khuyết viền (bao lồi, cho vật tròn)', variable=self.vars['fill_convex'],
+                        onvalue=1, offvalue=0, command=self.schedule).pack(fill='x', pady=2)
         line = ttk.Frame(ctl); line.pack(fill='x', pady=2)
         ttk.Label(line, text='Diện tích tối thiểu (px)').pack(side='left')
         self.vars['min_area'] = tk.IntVar(value=0)
@@ -281,25 +298,37 @@ class HSVApplication:
         for j in range(3):
             t2.rowconfigure(j, weight=1)
 
-        info = tk.Frame(self.root, bg='#dfe7f2'); info.pack(fill='x', side='bottom')
-        self.stats_text = tk.StringVar(value='Chưa có ảnh. Chọn ảnh mẫu hoặc bấm Mở ảnh.')
-        self.metric_text = tk.StringVar(value='')
-        self.status = tk.StringVar(value='Sẵn sàng.')
-        tk.Label(info, textvariable=self.stats_text, font=('Segoe UI', 13, 'bold'), bg='#dfe7f2', fg=DARK, anchor='w').pack(fill='x', padx=12, pady=(5, 0))
-        tk.Label(info, textvariable=self.metric_text, font=('Segoe UI', 13, 'bold'), bg='#dfe7f2', fg='#0a6b2f', anchor='w').pack(fill='x', padx=12)
-        tk.Label(info, textvariable=self.status, font=FONT, bg='#dfe7f2', fg='#44546e', anchor='w').pack(fill='x', padx=12, pady=(0, 2))
-        self.progress = ttk.Progressbar(info, mode='determinate'); self.progress.pack(fill='x', padx=12, pady=(0, 5))
+
+    def _flow_tools(self, event):
+        """Xếp nút trên thanh công cụ, tự xuống hàng khi màn hình hẹp (máy chiếu 1024 px)."""
+        if event.width == self._flow_width:
+            return
+        self._flow_width = event.width
+        x = row = col = 0
+        for b in self.tool_buttons:
+            w = b.winfo_reqwidth() + 4
+            if col and x + w > event.width:
+                row += 1; x = col = 0
+            b.grid(row=row, column=col, padx=2, pady=1, sticky='w')
+            x += w; col += 1
+        for c in range(len(self.tool_buttons)):  # xóa cấu hình cột cũ để hàng mới không bị giãn
+            event.widget.columnconfigure(c, weight=0, minsize=0)
 
     def _wheel(self, event):
-        w = self.root.winfo_containing(event.x_root, event.y_root)
-        while w is not None:
-            if w == self._left:
-                self._scroll_canvas.yview_scroll(-1 if event.delta > 0 else 1, 'units'); return
-            w = getattr(w, 'master', None)
+        """Cuộn bảng điều khiển bên trái khi con trỏ nằm trên nó (kể cả trên ô chọn)."""
+        path = str(event.widget)
+        if 'popdown' in path:  # danh sách xổ xuống của ô chọn tự cuộn
+            return
+        if path.startswith(str(self._left)):
+            self._scroll_canvas.yview_scroll(-1 if event.delta > 0 else 1, 'units')
 
     # ---------------------------------------------------------- tham số
     def config(self):
-        return HSVConfig(**{k: int(v.get()) for k, v in self.vars.items()}).validate()
+        try:
+            values = {k: int(v.get()) for k, v in self.vars.items()}
+        except (tk.TclError, ValueError):
+            raise ValueError('các ô tham số phải là số nguyên (kiểm tra ô Diện tích tối thiểu)') from None
+        return HSVConfig(**values).validate()
 
     def set_config(self, config):
         self.changing = True
@@ -316,8 +345,14 @@ class HSVApplication:
             cur = self.config()
         except (ValueError, tk.TclError):
             cur = PRESETS[name]
-        lo, hi = HUE_RANGES[name]
-        self.set_config(cur.with_hue(lo, hi))
+        self.set_config(cur.with_hue(*self.hue_for(name)))
+
+    def hue_for(self, name):
+        """Dải H của một màu; nếu đó là màu mục tiêu của ảnh mẫu đang mở thì dùng ngưỡng đã chỉnh cho ảnh."""
+        s = self.sample_map.get(self.sample_var.get())
+        if s and s['target'] == name and self.cap is None:
+            return s['config'].h_min, s['config'].h_max
+        return HUE_RANGES[name]
 
     def schedule(self, *_):
         if self.changing:
@@ -343,7 +378,7 @@ class HSVApplication:
             self.result = run_pipeline(self.image, c, self.display_color())
             self.result_config = c
             chosen = [n for n, v in self.multi_vars.items() if v.get()]
-            self.multi = run_multi(self.image, [(n, c.with_hue(*HUE_RANGES[n])) for n in chosen]) if chosen else None
+            self.multi = run_multi(self.image, [(n, c.with_hue(*self.hue_for(n))) for n in chosen]) if chosen else None
         except (ValueError, cv2.error) as exc:
             self.status.set('Không xử lý được: ' + str(exc)); return
         self.render()
@@ -358,8 +393,10 @@ class HSVApplication:
         if self.gt is not None:
             if self.gt.shape == self.result['mask'].shape:
                 m = binary_metrics(self.result['mask'], self.gt)
+                note = (f'   (mask chuẩn là của màu {self.gt_target})'
+                        if self.gt_target and self.preset.get() != self.gt_target else '')
                 self.metric_text.set(f"So với mask chuẩn:  IoU = {m['IoU']:.4f}   F1 = {m['F1']:.4f}   "
-                                     f"Precision = {m['Precision']:.4f}   Recall = {m['Recall']:.4f}")
+                                     f"Precision = {m['Precision']:.4f}   Recall = {m['Recall']:.4f}{note}")
             else:
                 self.metric_text.set('Mask chuẩn khác kích thước ảnh – bỏ qua đánh giá.')
         else:
@@ -385,7 +422,8 @@ class HSVApplication:
             titles[5] = f"B3. Mask thô ({s['raw_pixels']:,} px)"
             titles[6] = f"B4. Opening ({s['opened_pixels']:,} px)"
             titles[7] = f"B5. Closing ({s['closed_pixels']:,} px)"
-            titles[8] = f"B6. Lọc vùng: {s['components_before']} → {s['components']}"
+            titles[8] = f"B6. Lọc vùng: {s['components_before']} → {s['components']}" + \
+                (' + lấp khuyết' if self.result_config and self.result_config.fill_convex else '')
             for p, img, t in zip(self.pipe_panels, imgs, titles):
                 p.show(img, t)
             last = self.pipe_panels[11]
@@ -401,7 +439,7 @@ class HSVApplication:
         self.stop_video()
         self.image = image; self.source = str(path)
         if not keep_gt:
-            self.gt = None
+            self.gt = None; self.gt_target = None
         self.process()
 
     def open_image(self):
@@ -418,6 +456,7 @@ class HSVApplication:
 
         def act():
             self.gt = read_image(s['mask'], True) if s['mask'] else None
+            self.gt_target = s['target'] if s['mask'] else None
             self.preset.set(s['target'] if s['target'] in PRESETS else 'Tùy chỉnh')
             self.changing = True
             for k, v in s['config'].to_dict().items():
@@ -454,7 +493,7 @@ class HSVApplication:
             cap.release()
             messagebox.showerror('Mở video', 'Không mở được video hoặc video không có khung hình hợp lệ.'); return
         self.stop_video()
-        self.cap = cap; self.source = str(p); self.image = frame; self.gt = None; self.frame_index = 0
+        self.cap = cap; self.source = str(p); self.image = frame; self.gt = None; self.gt_target = None; self.frame_index = 0
         self.sample_var.set(''); self.sample_note.configure(text='Video: bấm ▶ Phát để chạy, tham số áp dụng ngay khi chỉnh.')
         fps = cap.get(cv2.CAP_PROP_FPS)
         self.delay = max(15, round(1000 / fps)) if math.isfinite(fps) and fps > 0 else 40
@@ -576,7 +615,7 @@ class HSVApplication:
         if gt.shape != self.image.shape[:2]:
             raise ValueError(f'Mask chuẩn {gt.shape[1]}×{gt.shape[0]} khác kích thước ảnh '
                              f'{self.image.shape[1]}×{self.image.shape[0]}.')
-        self.gt = gt; self.process()
+        self.gt = gt; self.gt_target = None; self.process()
 
     # ---------------------------------------------------------- lưu
     def output_dir(self):

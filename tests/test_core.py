@@ -149,3 +149,32 @@ def test_main_image_story():
     s = {x['id']: x for x in load_samples(ROOT)}['01_smarties']
     r = run_pipeline(read_image(s['image']), s['config'])
     assert r['stats']['components'] == 4
+
+
+def test_red_orange_presets_do_not_overlap():
+    """Dải Đỏ và Cam không được trùng nhau (kẹo cam có H 0..17, kẹo đỏ H 171..179 và 0)."""
+    from hsv_app.core import HUE_RANGES
+
+    def hues(lo, hi):
+        return set(range(lo, 180)) | set(range(0, hi + 1)) if lo > hi else set(range(lo, hi + 1))
+    assert not hues(*HUE_RANGES['Đỏ']) & hues(*HUE_RANGES['Cam'])
+    s = {x['id']: x for x in load_samples(ROOT)}['01_smarties']
+    img = read_image(s['image'])
+    assert run_pipeline(img, s['config'].with_hue(*HUE_RANGES['Đỏ']))['stats']['components'] == 4
+    assert run_pipeline(img, s['config'].with_hue(*HUE_RANGES['Cam']))['stats']['components'] == 2
+
+
+def test_fill_convex_closes_edge_notches():
+    """Lấp khuyết viền: vẫn 4 kẹo, mỗi kẹo gần tròn đầy (độ đầy >= 0.985)."""
+    s = {x['id']: x for x in load_samples(ROOT)}['01_smarties']
+    img = read_image(s['image'])
+    cfg = HSVConfig(**{**s['config'].to_dict(), 'fill_convex': 1})
+    r = run_pipeline(img, cfg)
+    assert r['stats']['components'] == 4
+    for c in r['components']:
+        m = (r['mask'][c['y']:c['y'] + c['height'], c['x']:c['x'] + c['width']] > 0).astype(np.uint8)
+        cnts, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        area = sum(cv2.contourArea(x) for x in cnts)
+        assert area / cv2.contourArea(cv2.convexHull(np.vstack(cnts))) >= 0.985
+    with pytest.raises(ValueError):
+        HSVConfig(fill_convex=2).validate()
