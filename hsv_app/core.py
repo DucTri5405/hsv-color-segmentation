@@ -275,8 +275,6 @@ def run_pipeline(image, config, display_color=None, with_steps=True, text_scale=
     return result
 
 
-segment_bgr = run_pipeline  # tên cũ, giữ tương thích
-
 
 def run_multi(image, named_configs):
     """Phân đoạn nhiều màu cùng lúc: OR các mask, mỗi màu tô một màu overlay."""

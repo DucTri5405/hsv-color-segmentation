@@ -1,5 +1,7 @@
 # HSV Color Segmentation
 
+[![Tests](https://github.com/DucTri5405/hsv-color-segmentation/actions/workflows/tests.yml/badge.svg)](https://github.com/DucTri5405/hsv-color-segmentation/actions/workflows/tests.yml)
+
 Ứng dụng desktop phân đoạn ảnh theo màu trên không gian HSV, viết bằng Python, OpenCV và Tkinter.
 Chọn màu cần tách, chỉnh ngưỡng H, S, V bằng thanh trượt và xem ngay kết quả từng bước: mask, ảnh phân đoạn,
 số vùng và các chỉ số đánh giá.
@@ -98,3 +100,8 @@ evaluate.py chạy đánh giá trên toàn bộ dữ liệu
 ## Tác giả
 
 Nguyễn Đức Trí
+
+## Giấy phép
+
+Mã nguồn phát hành theo giấy phép [MIT](LICENSE). Ảnh mẫu trong `data/` giữ giấy phép gốc của từng nguồn,
+xem [data/NGUON_DU_LIEU.md](data/NGUON_DU_LIEU.md).
